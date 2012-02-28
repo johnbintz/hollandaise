@@ -1,9 +1,9 @@
 # Hollandaise sauce is a delicious delicacy.
 
-TODO: Easily take a bunch of screenshots using Sauce Labs or with your local browsers
-FIXME: The method for instantiating Sauce Labs Selenium WebDriver browsers
-TODO: Run all the screenshot taking in parallel for SPEEDS
-BUG: Find them and destroy them!
+    TODO: Easily take a bunch of screenshots using Sauce Labs or with your local browsers
+    FIXME: The method for instantiating Sauce Labs Selenium WebDriver browsers
+    TODO: Run all the screenshot taking in parallel for SPEEDS
+    BUG: Find them and destroy them!
 
 ## Preparation and Serving
 

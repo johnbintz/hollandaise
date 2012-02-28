@@ -21,23 +21,31 @@ module Hollandaise
       end
 
       def ie7
-        [ 'iexplore', '7', 'Windows 2003' ]
+        [ :sauce, 'iexplore', '7', 'Windows 2003' ]
       end
 
       def ie8
-        [ 'iexplore', '8', 'Windows 2003' ]
+        [ :sauce, 'iexplore', '8', 'Windows 2003' ]
       end
 
       def ie9
-        [ 'iexplore', '9', 'Windows 2008' ]
+        [ :sauce, 'iexplore', '9', 'Windows 2008' ]
       end
 
       def ffwin10
-        [ 'firefox', '10', 'Windows 2008' ]
+        [ :sauce, 'firefox', '10', 'Windows 2008' ]
       end
 
       def chromewin
-        [ 'chrome', '', 'Windows 2008' ]
+        [ :sauce, 'chrome', '', 'Windows 2008' ]
+      end
+
+      def firefox
+        [ :selenium, :firefox ]
+      end
+
+      def chrome
+        [ :selenium, :chrome ]
       end
     end
   end
@@ -66,7 +74,7 @@ class Hollandaise::CLI < Thor
 
     Hollandaise::Browsers.for(browsers).each do |browser|
       info = { :browser_url => url, :job_name => "#{url}" }
-      [ :browser, :browser_version, :os ].each_with_index { |key, index| info[key] = browser[index] }
+      [ :type, :browser, :browser_version, :os ].each_with_index { |key, index| info[key] = browser[index] }
 
       thread = Thread.new do
         selenium = nil
@@ -79,9 +87,15 @@ class Hollandaise::CLI < Thor
 
           mutex.synchronize { puts "#{target}..." }
 
-          require 'sauce/selenium'
+          selenium = case Thread.current[:browser].first
+          when :sauce
+            require 'sauce/selenium'
 
-          selenium = Sauce::Selenium2.new(Thread.current[:info])
+            Sauce::Selenium2.new(Thread.current[:info])
+          when :selenium
+            Selenium::WebDriver.for Thread.current[:browser].last
+          end
+
           selenium.navigate.to url
           sleep options[:delay].to_i
           selenium.execute_script %{window.resizeTo(1280, 1024)}
@@ -89,7 +103,7 @@ class Hollandaise::CLI < Thor
 
           mutex.synchronize { puts "#{target} done!" }
         ensure
-          selenium.stop if selenium
+          selenium.quit if selenium
         end
       end
 
@@ -135,7 +149,12 @@ class Hollandaise::CLI < Thor
     end
 
     def screenshot_target_for(browser)
-      File.join(dir, browser[2], "#{browser[0]} #{browser[1]}.png")
+      case browser.first
+      when :sauce
+        File.join(dir, browser[3], "#{browser[1]} #{browser[2]}.png")
+      when :selenium
+        File.join(dir, "#{browser[1]}.png")
+      end
     end
   end
 end

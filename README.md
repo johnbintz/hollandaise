@@ -1,6 +1,6 @@
 # Hollandaise sauce is a delicious delicacy.
 
-TODO: Easily take a bunch of screenshots using Sauce Labs
+TODO: Easily take a bunch of screenshots using Sauce Labs or with your local browsers
 FIXME: The method for instantiating Sauce Labs Selenium WebDriver browsers
 TODO: Run all the screenshot taking in parallel for SPEEDS
 BUG: Find them and destroy them!
@@ -16,6 +16,13 @@ BUG: Find them and destroy them!
 * `hollandaise sauce http://my.cool.website/url/to/test/ browser browser ...`
 
 Currently have three browsers available:
+
+Locally, using Selenium:
+
+* `firefox`
+* `chrome`
+
+On Sauce labs:
 
 * `ie7`
 * `ie8`

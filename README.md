@@ -15,9 +15,7 @@ BUG: Find them and destroy them!
 
 * `hollandaise sauce http://my.cool.website/url/to/test/ browser browser ...`
 
-Currently have three browsers available:
-
-Locally, using Selenium:
+Browsers! Locally, using Selenium:
 
 * `firefox`
 * `chrome`

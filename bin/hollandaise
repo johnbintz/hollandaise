@@ -7,7 +7,7 @@ require 'builder'
 
 module Hollandaise
   class << self
-    attr_accessor :url
+    attr_accessor :url, :browsers
 
     def configure
       yield self
@@ -52,17 +52,22 @@ module Hollandaise
 end
 
 begin
-  load 'hollandaise.rb'
+  load File.join(Dir.pwd, 'hollandaise.rb')
 rescue LoadError => e
 end
 
 class Hollandaise::CLI < Thor
   desc "sauce URL BROWSER BROWSER...", "Take screenshots of a URL on Sauce Labs"
   method_options :delay => 0
-  def sauce(url, *browsers)
-    if Hollandaise.url
-      browsers.unshift(url)
+  def sauce(*browsers)
+    if browsers.first && browsers.first[%r{^http}]
+      url = browsers.shift
+    else
       url = Hollandaise.url
+    end
+
+    if Hollandaise.browsers && browsers.empty?
+      browsers = Hollandaise.browsers
     end
 
     threads = []
@@ -141,7 +146,7 @@ class Hollandaise::CLI < Thor
     File.open('index.html', 'wb') { |fh| fh.print html.to_s }
   end
 
-  default_task :snapshot
+  default_task :sauce
 
   no_tasks do
     def dir

@@ -1,0 +1,114 @@
+#!/usr/bin/env ruby
+
+require 'thor'
+require 'sauce'
+require 'thread'
+require 'builder'
+
+module Hollandaise
+  module Browsers
+    class << self
+      def for(browsers)
+        browsers.collect { |browser| self.send(browser) }
+      end
+
+      def ie7
+        [ 'iexplore', '7', 'Windows 2003' ]
+      end
+
+      def ie8
+        [ 'iexplore', '8', 'Windows 2003' ]
+      end
+
+      def ie9
+        [ 'iexplore', '9', 'Windows 2008' ]
+      end
+    end
+  end
+end
+
+class Hollandaise::CLI < Thor
+  desc "sauce URL BROWSER BROWSER...", "Take screenshots of a URL on Sauce Labs"
+  def sauce(url, *browsers)
+    threads = []
+
+    FileUtils.rm_rf(dir) if File.directory?(dir)
+    FileUtils.mkdir_p(dir)
+
+    mutex = Mutex.new
+
+    Hollandaise::Browsers.for(browsers).each do |browser|
+      info = { :browser_url => url, :job_name => "#{url}" }
+      [ :browser, :browser_version, :os ].each_with_index { |key, index| info[key] = browser[index] }
+
+      thread = Thread.new do
+        selenium = nil
+
+        Thread.stop if Thread.current == self
+
+        begin
+          target = screenshot_target_for(Thread.current[:browser])
+          FileUtils.mkdir_p(File.dirname(target))
+
+          mutex.synchronize { puts "#{target}..." }
+
+          selenium = Sauce::Selenium2.new(Thread.current[:info])
+          selenium.navigate.to url
+          selenium.execute_script %{window.resizeTo(1280, 1024)}
+          selenium.save_screenshot(target)
+
+          mutex.synchronize { puts "#{target} done!" }
+        ensure
+          selenium.stop if selenium
+        end
+      end
+
+      thread[:info] = info
+      thread[:browser] = browser
+      thread.run
+      threads << thread
+    end
+
+    threads.each(&:join)
+
+    html = Builder::XmlMarkup.new
+    html.html {
+      html.head {
+        html.title { "Sauce Labs screenshots for #{url}" }
+      }
+
+      html.body {
+        html.table {
+          html.tr {
+            browsers.each { |browser| html.th(browser) }
+          }
+
+          html.tr {
+            Hollandaise::Browsers.for(browsers).each { |browser|
+              html.td(:valign => 'top') {
+                html.img(:src => screenshot_target_for(browser))
+              }
+            }
+          }
+        }
+      }
+    }
+
+    File.open('index.html', 'wb') { |fh| fh.print html.to_s }
+  end
+
+  default_task :snapshot
+
+  no_tasks do
+    def dir
+      "screenshots"
+    end
+
+    def screenshot_target_for(browser)
+      File.join(dir, browser[2], "#{browser[0]} #{browser[1]}.png")
+    end
+  end
+end
+
+Hollandaise::CLI.start
+

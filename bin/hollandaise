@@ -6,6 +6,14 @@ require 'thread'
 require 'builder'
 
 module Hollandaise
+  class << self
+    attr_accessor :url
+
+    def configure
+      yield self
+    end
+  end
+
   module Browsers
     class << self
       def for(browsers)
@@ -23,13 +31,32 @@ module Hollandaise
       def ie9
         [ 'iexplore', '9', 'Windows 2008' ]
       end
+
+      def ffwin10
+        [ 'firefox', '10', 'Windows 2008' ]
+      end
+
+      def chromewin
+        [ 'chrome', '', 'Windows 2008' ]
+      end
     end
   end
 end
 
+begin
+  load 'hollandaise.rb'
+rescue LoadError => e
+end
+
 class Hollandaise::CLI < Thor
   desc "sauce URL BROWSER BROWSER...", "Take screenshots of a URL on Sauce Labs"
+  method_options :delay => 0
   def sauce(url, *browsers)
+    if Hollandaise.url
+      browsers.unshift(url)
+      url = Hollandaise.url
+    end
+
     threads = []
 
     FileUtils.rm_rf(dir) if File.directory?(dir)
@@ -52,8 +79,11 @@ class Hollandaise::CLI < Thor
 
           mutex.synchronize { puts "#{target}..." }
 
+          require 'sauce/selenium'
+
           selenium = Sauce::Selenium2.new(Thread.current[:info])
           selenium.navigate.to url
+          sleep options[:delay].to_i
           selenium.execute_script %{window.resizeTo(1280, 1024)}
           selenium.save_screenshot(target)
 

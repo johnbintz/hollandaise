@@ -20,6 +20,8 @@ Currently have three browsers available:
 * `ie7`
 * `ie8`
 * `ie9`
+* `chromewin`
+* `ffwin10`
 
 Make more on the `Hollandaise::Browsers` module! All sorts of flavors!
 

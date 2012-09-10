@@ -18,6 +18,6 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'sauce'
   gem.add_dependency 'capybara'
   gem.add_dependency 'thor'
-  gem.add_dependency 'builder'
+  gem.add_dependency 'arbre'
 end
 

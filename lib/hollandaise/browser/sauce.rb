@@ -12,7 +12,7 @@ module Hollandaise
         @selenium ||= ::Sauce::Selenium2.new(info)
       end
 
-      def target_for(dir)
+      def target
         dir.join(@os.to_s).join("#{@browser} #{@version}.png")
       end
 

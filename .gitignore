@@ -18,3 +18,5 @@ tmp
 index.html
 screenshots/
 .DS_Store
+chromedriver.log
+

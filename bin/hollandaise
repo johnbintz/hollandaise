@@ -3,7 +3,7 @@
 require 'thor'
 require 'builder'
 
-$: << File.expand_path('../../lib')
+$: << File.expand_path('../../lib', __FILE__)
 
 require 'hollandaise'
 require 'hollandaise/cli'

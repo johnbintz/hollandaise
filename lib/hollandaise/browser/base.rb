@@ -1,6 +1,8 @@
 module Hollandaise
   module Browser
     class Base
+      attr_reader :browser
+
       def run(url)
         @url = url
 
@@ -9,8 +11,11 @@ module Hollandaise
         selenium.execute_script %{window.resizeTo(1280, 1024)}
       end
 
-      def take_screenshot(target_dir)
-        target = target_for(target_dir)
+      def dir
+        @options[:dir]
+      end
+
+      def take_screenshot
         target.parent.mkpath
 
         selenium.save_screenshot(target.to_s)

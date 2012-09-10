@@ -1,3 +1,6 @@
+require 'arbre'
+require 'pathname'
+
 module Hollandaise
   class CLI < Thor
     desc "sauce URL BROWSER BROWSER...", "Take screenshots of a URL on Sauce Labs"
@@ -13,43 +16,46 @@ module Hollandaise
         browsers = Hollandaise.browsers
       end
 
-      Hollandaise::Browsers.each(browsers, options) do |browser|
+      browser_objects = Hollandaise::Browsers.for(browsers, options.merge(:dir => dir))
+
+      browser_objects.each do |browser|
         begin
           browser.run(url)
-          browser.take_screenshot(dir)
+          browser.take_screenshot
         ensure
           browser.close
         end
       end
 
-      if false
+      html = Arbre::Context.new do
+        html do
+          head do
+            title "Sauce Labs screenshots for #{url}" 
+          end
 
-      html = Builder::XmlMarkup.new
-      html.html {
-        html.head {
-          html.title { "Sauce Labs screenshots for #{url}" }
-        }
+          body do
+            table do
+              thead do
+                tr do
+                  browser_objects.each do |browser|
+                    th browser.browser
+                  end
+                end
+              end
 
-        html.body {
-          html.table {
-            html.tr {
-              browsers.each { |browser| html.th(browser) }
-            }
-
-            html.tr {
-              Hollandaise::Browsers.for(browsers).each { |browser|
-                html.td(:valign => 'top') {
-                  html.img(:src => screenshot_target_for(browser))
-                }
-              }
-            }
-          }
-        }
-      }
+              tbody do
+                browser_objects.each do |browser|
+                  td(:valign => :top) do
+                    img(:src => browser.target)
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
 
       File.open('index.html', 'wb') { |fh| fh.print html.to_s }
-
-      end
     end
 
     default_task :sauce

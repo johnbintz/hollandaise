@@ -3,6 +3,8 @@ require 'hollandaise/browsers'
 require 'hollandaise/project'
 require 'hollandaise/browser'
 
+require 'hollandaise/railtie' if defined?(Rails::Railtie)
+
 module Hollandaise
   class << self
     attr_accessor :url, :browsers, :delay
@@ -10,6 +12,17 @@ module Hollandaise
 
   def self.configure
     yield self
+  end
+
+  def self.load_config!
+    begin
+      load File.join(Dir.pwd, 'hollandaise.rb')
+    rescue LoadError => e
+      begin
+        load File.join(Dir.pwd, 'config/hollandaise.rb')
+      rescue LoadError => e
+      end
+    end
   end
 
   def self.project(name)

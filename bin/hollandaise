@@ -8,10 +8,7 @@ $: << File.expand_path('../../lib', __FILE__)
 require 'hollandaise'
 require 'hollandaise/cli'
 
-begin
-  load File.join(Dir.pwd, 'hollandaise.rb')
-rescue LoadError => e
-end
+Hollandaise.load_config!
 
 Hollandaise::CLI.start
 

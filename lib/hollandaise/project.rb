@@ -1,4 +1,7 @@
 require 'uri'
+require 'rainbow'
+require 'rack/proxy'
+require 'base64'
 
 module Hollandaise
   class Project
@@ -7,7 +10,51 @@ module Hollandaise
     end
 
     def root(root)
-      @root = URI(root)
+      @root = root
+    end
+
+    def port
+      32516
+    end
+
+    def proxy_root(root)
+      uri = URI(root)
+
+      @userinfo = uri.userinfo
+      @host = uri.host
+      @port = uri.port
+
+      @root = "http://localhost:#{port}#{uri.path}"
+    end
+
+    def with_proxy
+      if !@host
+        yield
+      else
+        proxy = Class.new(Rack::Proxy) do
+          def initialize(userinfo, host, port)
+            @userinfo, @host, @port = userinfo, host, port
+          end
+
+          def rewrite_env(env)
+            env['HTTP_HOST'] = @host
+            env['SERVER_PORT'] = @port
+            env['HTTP_AUTHORIZATION'] = "Basic #{Base64.encode64(@userinfo)}"
+
+            env
+          end
+        end
+
+        server = Thread.new do
+          Rack::Handler.default.run(proxy.new(@userinfo, @host, @port), :Port => port) do |server|
+            Thread.current[:server] = server
+          end
+        end
+
+        yield
+
+        server[:server].stop
+      end
     end
 
     def screenshot(name, uri)
@@ -20,11 +67,21 @@ module Hollandaise
       @browsers = browsers
     end
 
+    def screen_size(size)
+      @screen_size = size.split('x').collect(&:to_i)
+    end
+
     def run
-      urls.each do |url, name|
-        Hollandaise.chdir "#{@project_name}/#{name}" do
-          browser_objects.run do |browser|
-            browser.run_and_take_screenshot(url)
+      puts "Running #{@project_name}".foreground(:green)
+      with_proxy do
+        urls.each do |url, name|
+          puts "... #{name} (#{url})".foreground(:yellow)
+
+          Hollandaise.chdir "#{@project_name}/#{name}" do
+            browser_objects.run do |browser|
+              puts "     ... #{browser.name}".foreground(:white)
+              browser.run_and_take_screenshot(url, @screen_size)
+            end
           end
         end
       end
@@ -33,7 +90,7 @@ module Hollandaise
     private
     def urls
       @screenshots.collect do |name, uri|
-        [ @root.merge(URI(uri)), name ]
+        [ File.join(@root, uri), name ]
       end
     end
 

@@ -19,5 +19,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'capybara'
   gem.add_dependency 'thor'
   gem.add_dependency 'arbre'
+  gem.add_dependency 'rainbow'
+  gem.add_dependency 'rack-proxy'
 end
 

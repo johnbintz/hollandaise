@@ -11,6 +11,10 @@ module Hollandaise
         @selenium ||= ::Selenium::WebDriver.for(@browser)
       end
 
+      def name
+        @browser
+      end
+
       def target
         dir.join("#{@browser}.png")
       end

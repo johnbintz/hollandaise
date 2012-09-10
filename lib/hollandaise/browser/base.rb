@@ -3,12 +3,12 @@ module Hollandaise
     class Base
       attr_reader :browser
 
-      def run_and_take_screenshot(url)
+      def run_and_take_screenshot(url, screen_size = [ 1280, 1024 ])
         @url = url
 
         selenium.navigate.to url
         sleep @options[:delay].to_i
-        selenium.execute_script %{window.resizeTo(1280, 1024)}
+        selenium.manage.window.resize_to(*screen_size)
         take_screenshot
       end
 

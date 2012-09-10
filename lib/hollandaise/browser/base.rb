@@ -3,16 +3,13 @@ module Hollandaise
     class Base
       attr_reader :browser
 
-      def run(url)
+      def run_and_take_screenshot(url)
         @url = url
 
         selenium.navigate.to url
         sleep @options[:delay].to_i
         selenium.execute_script %{window.resizeTo(1280, 1024)}
-      end
-
-      def dir
-        @options[:dir]
+        take_screenshot
       end
 
       def take_screenshot
@@ -25,6 +22,10 @@ module Hollandaise
         selenium.quit
 
         @selenium = nil
+      end
+
+      def dir
+        Hollandaise.dir
       end
     end
   end

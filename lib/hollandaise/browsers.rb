@@ -1,11 +1,7 @@
 module Hollandaise
-  module Browsers
-    def self.for(browsers, options)
-      browsers.collect { |browser| Hollandaise::Browser.for(self.send(browser), options) }
-    end
-
-    def self.each(browsers, options, &block)
-      self.for(browsers, options).each(&block)
+  class Browsers
+    def self.for(browsers, options = {})
+      new(browsers.flatten.collect { |browser| Hollandaise::Browser.for(self.send(browser), options) })
     end
 
     def self.ie7
@@ -34,6 +30,24 @@ module Hollandaise
 
     def self.chrome
       [ :selenium, :chrome ]
+    end
+
+    def initialize(browsers)
+      @browsers = browsers
+    end
+
+    def each(&block)
+      @browsers.each(&block)
+    end
+
+    def run
+      @browsers.each do |browser|
+        begin
+          yield browser
+        ensure
+          browser.close
+        end
+      end
     end
   end
 end

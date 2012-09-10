@@ -3,6 +3,21 @@ require 'pathname'
 
 module Hollandaise
   class CLI < Thor
+    include Thor::Actions
+    source_root File.expand_path('../../../skel', __FILE__)
+
+    desc "cook", "Use the config file and take all the screenshots listed in there"
+    def cook
+      Hollandaise.projects.each(&:run)
+    end
+
+    desc "project NAME", "Create a skeletal project file"
+    def project(name)
+      @name = name
+
+      template 'hollandaise.rb.tt', 'hollandaise.rb'
+    end
+
     desc "sauce URL BROWSER BROWSER...", "Take screenshots of a URL on Sauce Labs"
     method_options :delay => 0
     def sauce(*browsers)
@@ -16,15 +31,10 @@ module Hollandaise
         browsers = Hollandaise.browsers
       end
 
-      browser_objects = Hollandaise::Browsers.for(browsers, options.merge(:dir => dir))
+      browser_objects = Hollandaise::Browsers.for(browsers, options)
 
-      browser_objects.each do |browser|
-        begin
-          browser.run(url)
-          browser.take_screenshot
-        ensure
-          browser.close
-        end
+      browser_objects.run do |browser|
+        browser.run_and_take_screenshot(url)
       end
 
       html = Arbre::Context.new do
@@ -59,11 +69,5 @@ module Hollandaise
     end
 
     default_task :sauce
-
-    no_tasks do
-      def dir
-        Pathname("screenshots")
-      end
-    end
   end
 end

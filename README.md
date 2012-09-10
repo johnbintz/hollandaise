@@ -28,7 +28,10 @@ On Sauce labs:
 * `chromewin`
 * `ffwin10`
 
-Make more on the `Hollandaise::Browsers` module! All sorts of flavors!
+### Projects
+
+`hollandaise project NAME` creates a new `hollandaise.rb` file. Fill it in with your project details.
+`hollandaise cook` runs that project, making appropriately-named directories. Sweet!
 
 ## Adding your own ingredients
 
